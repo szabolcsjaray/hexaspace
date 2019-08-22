@@ -190,6 +190,7 @@
 
                 let hexaEl = el("hexa");
                 context = hexaEl.getContext("2d");
+                context.clearRect(0, 0, hexaEl.width, hexaEl.height);
                 context.textAlign = "center";
                 let n = 1;
                 for(let i=1;i<W*2;i+=1) {
@@ -349,7 +350,7 @@
                
         </script>
     </head>
-    <body >
+    <body  style="background-color: #A0A0A0;">
         <table>
             <tbody>
                 <tr>
