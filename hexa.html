@@ -16,7 +16,8 @@
                     COLSTEP = parseInt(el("grstep").value);
                     MAXNUM = parseInt(el("random").value);
                     drawform = el("drawform").value;
-                    
+                    circleNum = parseInt(el("circlenum").value);
+                    circleRad = parseInt(el("circlerad").value);
             }
             
             const HEIGHT = 1000;
@@ -121,6 +122,7 @@
             var COLSTEP = 300;
             var OFFSMULT = 10;
             var MAXNUM = 8;
+            var circleNum = 8;
             
             var cols = [];
             const hexDigits = "0123456789ABCDEFF";
@@ -211,9 +213,9 @@
 
                 switch (drawform) {
                     case "circle" :
-                        RX = W / 2 ;
-                        RY = H / 2 / 2;
-                        for(let fi=0;fi<=2*Math.PI;fi+=Math.PI/5) {
+                        RX = W / 2 * circleRad / 100;
+                        RY = H / 2 / 2 * circleRad / 100;
+                        for(let fi=0;fi<2*Math.PI;fi+=2*Math.PI/circleNum) {
                             let xfi = Math.round(W + Math.cos(fi)*RX);
                             let yfi = Math.round(H / 2 + Math.sin(fi)*RY);
 
@@ -359,6 +361,7 @@
     </head>
     <body  style="background-color: #A0A0A0;">
         <table>
+
             <tbody>
                 <tr>
                     <td>
@@ -367,7 +370,12 @@
                     </td>
                     <td>
                         <table>
-                            <tbody>
+                                <thead>
+                                        <th>
+                                                HEXA SPACE
+                                        </th>
+                                    </thead>
+                                                                <tbody>
                                 <tr>
                                     <td>
                                         Triangle size:</td><td> <input type="number" id="input_dn" value="5" onchange="synchslide(this,2,100);"/>
@@ -400,11 +408,19 @@
                                 <tr>
                                     <td>Grow step: </td><td> <input id="grstepn" type="number" value="100" onchange="synchslide(this,2,1000);"/>
                                         2 <input type="range" min="2" max="1000" value="100" oninput="synchnum(this);" id="grstep"> 1000</td>
-                                </tr>                                
+                                </tr>
                                 <tr>
                                     <td>Random num: </td><td> <input id="randomn" type="number" value="10" onchange="synchslide(this,1,1000);"/>
                                         1 <input type="range" min="1" max="1000" value="10" oninput="synchnum(this);" id="random"> 1000</td>
-                                </tr>                                
+                                </tr>
+                                <tr>
+                                        <td>Circle num: </td><td> <input id="circlenumn" type="number" value="8" onchange="synchslide(this,1,1000);"/>
+                                            1 <input type="range" min="1" max="1000" value="10" oninput="synchnum(this);" id="circlenum"> 1000</td>
+                                </tr>
+                                <tr>
+                                        <td>Circle radius %: </td><td> <input id="circleradn" type="number" value="100" onchange="synchslide(this,1,200);"/>
+                                            1% <input type="range" min="1" max="200" value="100" oninput="synchnum(this);" id="circlerad"> 200%</td>
+                                </tr>
                                 <tr>
                                     <td colspan="2">
                                         <button title="Redraw" onclick="startIt();">Redraw</button>
