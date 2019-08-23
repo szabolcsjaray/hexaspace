@@ -356,6 +356,9 @@
                 let slEl = document.getElementById(el.id.substr(0, el.id.length - 1));
                 slEl.value = el.value;
             }
+            function copyValue( fromId, toId) {
+                el(toId).jscolor.fromString(el(fromId).value);
+            }
                
         </script>
     </head>
@@ -397,13 +400,13 @@
                                     <td>BG color 1: </td><td> <input id="bgcol1" class="jscolor" value="000000"></td>
                                 </tr>
                                 <tr>
-                                    <td>BG color 2: </td><td> <input id="bgcol2" class="jscolor" value="000010"></td>
+                                    <td>BG color 2: </td><td> <input id="bgcol2" class="jscolor" value="000010"> <button title="Same" onclick="copyValue( 'bgcol1', 'bgcol2');">Same</button></td>
                                 </tr>
                                 <tr>
                                     <td>Grow color 1: </td><td> <input id="grcol1" class="jscolor" value="F00000"></td>
                                 </tr>
                                 <tr>
-                                    <td>Grow color 2: </td><td> <input id="grcol2" class="jscolor" value="00F000"></td>
+                                    <td>Grow color 2: </td><td> <input id="grcol2" class="jscolor" value="00F000"> <button title="Same" onclick="copyValue('grcol1', 'grcol2');">Same</button></td>
                                 </tr>
                                 <tr>
                                     <td>Grow step: </td><td> <input id="grstepn" type="number" value="100" onchange="synchslide(this,2,1000);"/>
