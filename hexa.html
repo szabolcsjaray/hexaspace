@@ -18,6 +18,7 @@
                     drawform = el("drawform").value;
                     circleNum = parseInt(el("circlenum").value);
                     circleRad = parseInt(el("circlerad").value);
+                    DRAWSTEPNUM = parseInt(el("grspeed").value);
             }
 
             const HEIGHT = 1000;
@@ -183,85 +184,14 @@
                 link.click();
             }
 
-            function startIt() {
-                console.log("startIt d=" + d);
+            function drawNextStep() {
+                    window.requestAnimationFrame(drawStep);
+            }
+            var DRAWSTEPNUM = 10;
 
-                //let bgCols=["#EFDFEF", "#AFFFFF"];
-                setParameters();
-                dh = d*Math.sqrt(3)/2;
-                H = Math.round(HEIGHT/dh);
-                W = Math.round(WIDTH/d);
-                initPoints();
-                walls = [];
-                triangles = [];
-                setColors();
-                initCols();
-
-                let hexaEl = el("hexa");
-                context = hexaEl.getContext("2d");
-                context.clearRect(0, 0, hexaEl.width, hexaEl.height);
-                context.textAlign = "center";
-                let n = 1;
-                for(let i=0;i<W*2+1;i+=1) {
-                    for (let j=0;j<H+1;j++) {
-
-                        drawTriangle(i,j, bgCols[(i+j)%2], "("+i+","+j+")");
-                    }
-                }
-                let RX, RY, fi;
-
-
-                switch (drawform) {
-                    case "circle" :
-                        RX = W / 2 * circleRad / 100;
-                        RY = H / 2 / 2 * circleRad / 100;
-                        for(let fi=0;fi<2*Math.PI;fi+=2*Math.PI/circleNum) {
-                            let xfi = Math.round(W + Math.cos(fi)*RX);
-                            let yfi = Math.round(H / 2 + Math.sin(fi)*RY);
-
-                            addIfNotThere(xfi, yfi);
-                        }
-                        break;
-                    case "spiral" :
-                        RX = W / 6 ;
-                        RY = H / 6 / 2;
-                        for(let fi=0;fi<=12*Math.PI;fi+=0.3) {
-                            let xfi = Math.round(W + Math.cos(fi)*RX*fi);
-                            let yfi = Math.round(H / 2 + Math.sin(fi)*RY*fi);
-
-                            addIfNotThere(xfi, yfi);
-                        }
-                        break;
-                    case "one" :
-                        addIfNotThere(Math.round(W), Math.round(H/2));
-                        break;
-                    case "randomroot" :
-                        for(let i=0;i<MAXNUM;i++) {
-                            addIfNotThere(Math.round(Math.random()*W*2), Math.round(Math.random()*H));
-                        }
-                       break;
-                }
-
-                for (let ti=0;ti<triangles.length;ti++) {
-                    drawTriangle(triangles[ti][0], triangles[ti][1], "black");
-                    addToWalls(ti,4);
-                    addAllPoints(triangles[ti]);
-
-                }
-                //addAllPoints(triangles[1]);
-                //console.log("points:" + points);
-                //addToWalls(1,4);
-
-                //drawTriangle(triangles[1][0], triangles[1][1], "grey");
-                const upC = "orange";
-                const downC = "blue";
-                const upRightC = "green";
-                const upLeftC = "red";
-                const downRightC = "yellow";
-                const downLeftC = "purple";
-
-
-                while (walls.length>0) {
+            function drawStep() {
+                let step = 0;
+                while (walls.length>0 && step<DRAWSTEPNUM) {
                     let i = Math.floor(Math.random() * walls.length);
                     //console.log(i);
                     let p = (walls[i][0]+walls[i][1])%2;
@@ -336,15 +266,89 @@
                         }
                     }
                     walls.splice(i,1);
+                    step++;
                 }
+                if (walls.length>0) {
+                    setTimeout(drawNextStep, 10);
+                }
+            }
+
+            const upC = "orange";
+            const downC = "blue";
+            const upRightC = "green";
+            const upLeftC = "red";
+            const downRightC = "yellow";
+            const downLeftC = "purple";
+
+            function startIt() {
+                console.log("startIt d=" + d);
+
+                //let bgCols=["#EFDFEF", "#AFFFFF"];
+                setParameters();
+                dh = d*Math.sqrt(3)/2;
+                H = Math.round(HEIGHT/dh);
+                W = Math.round(WIDTH/d);
+                initPoints();
+                walls = [];
+                triangles = [];
+                setColors();
+                initCols();
+
+                let hexaEl = el("hexa");
+                context = hexaEl.getContext("2d");
+                context.clearRect(0, 0, hexaEl.width, hexaEl.height);
+                context.textAlign = "center";
+                let n = 1;
+                for(let i=0;i<W*2+1;i+=1) {
+                    for (let j=0;j<H+1;j++) {
+
+                        drawTriangle(i,j, bgCols[(i+j)%2], "("+i+","+j+")");
+                    }
+                }
+                let RX, RY, fi;
+
+
+                switch (drawform) {
+                    case "circle" :
+                        RX = W / 2 * circleRad / 100;
+                        RY = H / 2 / 2 * circleRad / 100;
+                        for(let fi=0;fi<2*Math.PI;fi+=2*Math.PI/circleNum) {
+                            let xfi = Math.round(W + Math.cos(fi)*RX);
+                            let yfi = Math.round(H / 2 + Math.sin(fi)*RY);
+
+                            addIfNotThere(xfi, yfi);
+                        }
+                        break;
+                    case "spiral" :
+                        RX = W / 6 ;
+                        RY = H / 6 / 2;
+                        for(let fi=0;fi<=12*Math.PI;fi+=0.3) {
+                            let xfi = Math.round(W + Math.cos(fi)*RX*fi);
+                            let yfi = Math.round(H / 2 + Math.sin(fi)*RY*fi);
+
+                            addIfNotThere(xfi, yfi);
+                        }
+                        break;
+                    case "one" :
+                        addIfNotThere(Math.round(W), Math.round(H/2));
+                        break;
+                    case "randomroot" :
+                        for(let i=0;i<MAXNUM;i++) {
+                            addIfNotThere(Math.round(Math.random()*W*2), Math.round(Math.random()*H));
+                        }
+                       break;
+                }
+
+                for (let ti=0;ti<triangles.length;ti++) {
+                    drawTriangle(triangles[ti][0], triangles[ti][1], "black");
+                    addToWalls(ti,4);
+                    addAllPoints(triangles[ti]);
+
+                }
+
+                drawStep();
+
                 console.log("ready number of triangles:" + triangles.length);
-
-
-                /*for(let i=0;i<points.length;i++) {
-                    drawNode(points[i].x, points[i].y, "pink");
-                }*/
-
-                //console.log(triangles);
             }
 
             function synchnum(el) {
@@ -425,8 +429,12 @@
                                     <td>Grow color 2: </td><td> <input id="grcol2" class="jscolor" value="00F000"> <button title="Same" onclick="copyValue('grcol1', 'grcol2');">Same</button></td>
                                 </tr>
                                 <tr>
-                                    <td>Grow step: </td><td> <input id="grstepn" type="number" value="100" onchange="synchslide(this,2,1000);"/>
+                                    <td>Grow color step: </td><td> <input id="grstepn" type="number" value="100" onchange="synchslide(this,2,1000);"/>
                                         2 <input type="range" min="2" max="1000" value="100" oninput="synchnum(this);" id="grstep"> 1000</td>
+                                </tr>
+                                <tr>
+                                    <td>Grow speed: </td><td> <input id="grspeedn" type="number" value="100" onchange="synchslide(this,1,3000);"/>
+                                        1 <input type="range" min="1" max="3000" value="100" oninput="synchnum(this);" id="grspeed"> 3000</td>
                                 </tr>
                                 <tr class="randomroot">
                                     <td>Random num: </td><td> <input id="randomn" type="number" value="10" onchange="synchslide(this,1,1000);"/>
