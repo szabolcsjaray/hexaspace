@@ -19,6 +19,7 @@
                     circleNum = parseInt(el("circlenum").value);
                     circleRad = parseInt(el("circlerad").value);
                     DRAWSTEPNUM = parseInt(el("grspeed").value);
+                    SPIRAL_STEP = parseFloat(el("spiralstep").value);
             }
 
             const HEIGHT = 1000;
@@ -124,6 +125,7 @@
             var OFFSMULT = 10;
             var MAXNUM = 8;
             var circleNum = 8;
+            var SPIRAL_STEP = 0.3;
 
             var cols = [];
             const hexDigits = "0123456789ABCDEFF";
@@ -320,9 +322,9 @@
                         }
                         break;
                     case "spiral" :
-                        RX = W / 6 ;
-                        RY = H / 6 / 2;
-                        for(let fi=0;fi<=12*Math.PI;fi+=0.3) {
+                        RX = W / 6 * circleRad / 100;
+                        RY = H / 6 / 2 * circleRad / 100;
+                        for(let fi=0;fi<=12*Math.PI;fi+=SPIRAL_STEP) {
                             let xfi = Math.round(W + Math.cos(fi)*RX*fi);
                             let yfi = Math.round(H / 2 + Math.sin(fi)*RY*fi);
 
@@ -382,7 +384,7 @@
             }
         </script>
     </head>
-    <body  style="background-color: #A0A0A0;">
+    <body  style="background-color: #A0A0A0;" onload="showHideFormParameters();">
         <table>
 
             <tbody>
@@ -444,10 +446,14 @@
                                         <td>Circle num: </td><td> <input id="circlenumn" type="number" value="8" onchange="synchslide(this,1,1000);"/>
                                             1 <input type="range" min="1" max="1000" value="10" oninput="synchnum(this);" id="circlenum"> 1000</td>
                                 </tr>
-                                <tr class="circle">
-                                        <td>Circle radius %: </td><td> <input id="circleradn" type="number" value="100" onchange="synchslide(this,1,200);"/>
+                                <tr class="circle spiral">
+                                        <td>Circle/spiral radius %: </td><td> <input id="circleradn" type="number" value="100" onchange="synchslide(this,1,200);"/>
                                             1% <input type="range" min="1" max="200" value="100" oninput="synchnum(this);" id="circlerad"> 200%</td>
                                 </tr>
+                                <tr class="spiral">
+                                    <td>Spiral step angle: </td><td> <input id="spiralstepn" type="number" value="0.3" step="0.01" onchange="synchslide(this,0.02,3);"/>
+                                        0.02 <input type="range" min="0.02" max="3" value="0.3" step="0.01" oninput="synchnum(this);" id="spiralstep"> 3</td>
+                               </tr>
                                 <tr>
                                     <td colspan="2">
                                         <button title="Redraw" onclick="startIt();">Redraw</button>
