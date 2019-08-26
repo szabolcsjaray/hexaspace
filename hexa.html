@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+        <meta content="utf-8" http-equiv="encoding">
+        <link rel="stylesheet" href="hexa.css">
         <script src="jscolor.js"></script>
         <script lang="javascript">
 
@@ -119,8 +122,7 @@
                     triangles.push([x,y,1]);
                 }
             }
-            var COL0 = [0,100,255];
-            var COL1 = [255,0,0];
+            var COLARRAY = [[0,100,255], [255,0,0]];
             var COLSTEP = 300;
             var OFFSMULT = 10;
             var MAXNUM = 8;
@@ -136,18 +138,20 @@
 
             function initCols() {
                 cols = [];
-                for(let i=0;i<=COLSTEP;i++) {
-                    let c0 = Math.round(COL0[0]*(COLSTEP-i)/COLSTEP + COL1[0]*i/COLSTEP);
-                    let c1 = Math.round(COL0[1]*(COLSTEP-i)/COLSTEP + COL1[1]*i/COLSTEP);
-                    let c2 = Math.round(COL0[2]*(COLSTEP-i)/COLSTEP + COL1[2]*i/COLSTEP);
-                    //console.log(c0+","+c1+","+c2);
-                    //console.log(hex(c0)+","+hex(c1)+","+hex(c2));
-                    cols.push("#"+hex(c0)+hex(c1)+hex(c2));
+                for(let coli = 0;coli<COLARRAY.length-1;coli++) {
+                    for(let i=0;i<=COLSTEP;i++) {
+                        let c0 = Math.round(COLARRAY[coli][0]*(COLSTEP-i)/COLSTEP + COLARRAY[coli+1][0]*i/COLSTEP);
+                        let c1 = Math.round(COLARRAY[coli][1]*(COLSTEP-i)/COLSTEP + COLARRAY[coli+1][1]*i/COLSTEP);
+                        let c2 = Math.round(COLARRAY[coli][2]*(COLSTEP-i)/COLSTEP + COLARRAY[coli+1][2]*i/COLSTEP);
+                        //console.log(c0+","+c1+","+c2);
+                        //console.log(hex(c0)+","+hex(c1)+","+hex(c2));
+                        cols.push("#"+hex(c0)+hex(c1)+hex(c2));
+                    }
                 }
             }
 
             function colF(gen,offs) {
-                return cols[(gen+offs*OFFSMULT)%(COLSTEP+1)];
+                return cols[(gen+offs*OFFSMULT)%(cols.length)];
             }
 
             function initPoints() {
@@ -173,10 +177,13 @@
             function setColors() {
                 bgCols[0] = "#" + el("bgcol1").value;
                 bgCols[1] = "#" + el("bgcol2").value;
-                let gc1 = el("grcol1").value;
-                colToArray(gc1, COL0);
-                let gc2 = el("grcol2").value;
-                colToArray(gc2, COL1);
+                let i = 1;
+                COLARRAY = new Array();
+                while (el("grcol"+i)!=null && el("grcol"+i)!=undefined) {
+                    COLARRAY.push(new Array());
+                    colToArray(el("grcol"+i).value, COLARRAY[COLARRAY.length-1]);
+                    i++;
+                }
             }
 
             function saveImage() {
@@ -382,6 +389,27 @@
                 hideAllFormParameters();
                 setParameterVisibility(el("drawform").value, "table-row");
             }
+            function countColors(colId) {
+                let n = 1;
+                while (el(colId+(n+1))!=null && el(colId+(n+1))!=undefined) {
+                    n++;
+                }
+                return n;
+            }
+            function addColor(colId) {
+                let colNum = countColors(colId);
+                var newColEl = document.createElement("input");
+                newColEl.classList.add("jscolor");
+                newColEl.id=colId+(colNum+1);
+                let plusBUttonEl = el(colId+"plus");
+                el(colId).insertBefore(newColEl, plusBUttonEl);
+                jscolor.installByClassName("jscolor");
+            }
+            function removeColor(colId) {
+                let colNum = countColors(colId);
+                if (colNum==1) return;
+                el(colId).removeChild(el(colId+colNum));
+            }
         </script>
     </head>
     <body  style="background-color: #A0A0A0;" onload="showHideFormParameters();">
@@ -395,12 +423,12 @@
                     </td>
                     <td>
                         <table>
-                                <thead>
-                                        <th>
-                                                HEXA SPACE
-                                        </th>
-                                    </thead>
-                                                                <tbody>
+                            <thead>
+                                    <th>
+                                            HEXA SPACE
+                                    </th>
+                            </thead>
+                            <tbody>
                                 <tr>
                                     <td>
                                         Triangle size:</td><td> <input type="number" id="input_dn" value="5" onchange="synchslide(this,2,100);"/>
@@ -419,16 +447,20 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>BG color 1: </td><td> <input id="bgcol1" class="jscolor" value="000000"></td>
+                                    <td>BG colors: </td>
+                                    <td>
+                                        <input id="bgcol1" class="jscolor" value="000000">
+                                        <input id="bgcol2" class="jscolor" value="000010">
+                                        <button title="Same" onclick="copyValue( 'bgcol1', 'bgcol2');">Same</button>
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td>BG color 2: </td><td> <input id="bgcol2" class="jscolor" value="000010"> <button title="Same" onclick="copyValue( 'bgcol1', 'bgcol2');">Same</button></td>
-                                </tr>
-                                <tr>
-                                    <td>Grow color 1: </td><td> <input id="grcol1" class="jscolor" value="F00000"></td>
-                                </tr>
-                                <tr>
-                                    <td>Grow color 2: </td><td> <input id="grcol2" class="jscolor" value="00F000"> <button title="Same" onclick="copyValue('grcol1', 'grcol2');">Same</button></td>
+                                    <td>Grow colors 1: </td>
+                                    <td id="grcol">
+                                        <input id="grcol1" class="jscolor" value="F00000"><input id="grcol2" class="jscolor" value="00F080"><button id="grcolplus" title="Add color" onclick="addColor('grcol');">&nbsp;+&nbsp;</button>
+                                        <button title="Remove color" onclick="removeColor('grcol');">&nbsp;-&nbsp;</button>
+                                        <!--button title="Same" onclick="copyValue('grcol1', 'grcol2');">Same</button -->
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Grow color step: </td><td> <input id="grstepn" type="number" value="100" onchange="synchslide(this,2,1000);"/>
