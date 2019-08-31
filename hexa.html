@@ -24,6 +24,7 @@
                     DRAWSTEPNUM = parseInt(el("grspeed").value);
                     SPIRAL_STEP = parseFloat(el("spiralstep").value);
                     OFFSMULT = parseInt(el("coloroffset").value);
+                    ROOTCOL = el('rootcol').value;
             }
 
             const HEIGHT = 1000;
@@ -129,6 +130,7 @@
             var MAXNUM = 8;
             var circleNum = 8;
             var SPIRAL_STEP = 0.3;
+            var ROOTCOL = "000000";
 
             var cols = [];
             const hexDigits = "0123456789ABCDEFF";
@@ -180,9 +182,9 @@
                 bgCols[1] = "#" + el("bgcol2").value;
                 let i = 1;
                 COLARRAY = new Array();
-                while (el("grcol"+i)!=null && el("grcol"+i)!=undefined) {
+                while (el("grcol1_"+i)!=null && el("grcol1_"+i)!=undefined) {
                     COLARRAY.push(new Array());
-                    colToArray(el("grcol"+i).value, COLARRAY[COLARRAY.length-1]);
+                    colToArray(el("grcol1_"+i).value, COLARRAY[COLARRAY.length-1]);
                     i++;
                 }
             }
@@ -350,7 +352,7 @@
                 }
 
                 for (let ti=0;ti<triangles.length;ti++) {
-                    drawTriangle(triangles[ti][0], triangles[ti][1], "black");
+                    drawTriangle(triangles[ti][0], triangles[ti][1], "#"+ROOTCOL);
                     addToWalls(ti,4);
                     addAllPoints(triangles[ti]);
 
@@ -411,6 +413,12 @@
                 if (colNum==1) return;
                 el(colId).removeChild(el(colId+colNum));
             }
+            function startEqualsEndColor(colId) {
+                let colNum= countColors(colId);
+                if (colNum>2) {
+                    copyValue(colId+"1", colId+""+colNum);
+                }
+            }
         </script>
     </head>
     <body  style="background-color: #A0A0A0;" onload="showHideFormParameters();">
@@ -456,11 +464,18 @@
                                     </td>
                                 </tr>
                                 <tr>
+                                    <td>Root color: </td>
+                                    <td>
+                                        <input id="rootcol" class="jscolor" value="000000">
+                                        <button title="Same" onclick="copyValue( 'grcol1_1', 'rootcol');">Same</button>
+                                    </td>
+                                </tr>
+                                <tr id="trgrcol1">
                                     <td>Grow colors 1: </td>
-                                    <td id="grcol">
-                                        <input id="grcol1" class="jscolor" value="F00000"><input id="grcol2" class="jscolor" value="00F080"><button id="grcolplus" title="Add color" onclick="addColor('grcol');">&nbsp;+&nbsp;</button>
-                                        <button title="Remove color" onclick="removeColor('grcol');">&nbsp;-&nbsp;</button>
-                                        <!--button title="Same" onclick="copyValue('grcol1', 'grcol2');">Same</button -->
+                                    <td id="grcol1_">
+                                        <input id="grcol1_1" class="jscolor" value="F00000"><input id="grcol1_2" class="jscolor" value="00F080"><button id="grcol1_plus" title="Add color" onclick="addColor('grcol1_');">&nbsp;+&nbsp;</button>
+                                        <button title="Remove color" onclick="removeColor('grcol1_');">&nbsp;-&nbsp;</button>
+                                        <button title="Same" onclick="startEqualsEndColor('grcol1_');">=</button -->
                                     </td>
                                 </tr>
                                 <tr>
@@ -469,11 +484,11 @@
                                 </tr>
                                 <tr>
                                     <td>Color offset: </td><td> <input id="coloroffsetn" type="number" value="100" onchange="synchslide(this,0,1000);"/>
-                                        2 <input type="range" min="0" max="1000" value="100" oninput="synchnum(this);" id="coloroffset"> 1000</td>
+                                        0 <input type="range" min="0" max="1000" value="100" oninput="synchnum(this);" id="coloroffset"> 1000</td>
                                 </tr>
                                 <tr>
-                                    <td>Grow speed: </td><td> <input id="grspeedn" type="number" value="100" onchange="synchslide(this,1,3000);"/>
-                                        1 <input type="range" min="1" max="3000" value="100" oninput="synchnum(this);" id="grspeed"> 3000</td>
+                                    <td>Grow speed: </td><td> <input id="grspeedn" type="number" value="200" onchange="synchslide(this,1,3000);"/>
+                                        1 <input type="range" min="1" max="3000" value="200" oninput="synchnum(this);" id="grspeed"> 3000</td>
                                 </tr>
                                 <tr class="randomroot">
                                     <td>Random num: </td><td> <input id="randomn" type="number" value="10" onchange="synchslide(this,1,1000);"/>
