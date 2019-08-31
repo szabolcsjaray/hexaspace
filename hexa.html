@@ -23,6 +23,7 @@
                     circleRad = parseInt(el("circlerad").value);
                     DRAWSTEPNUM = parseInt(el("grspeed").value);
                     SPIRAL_STEP = parseFloat(el("spiralstep").value);
+                    OFFSMULT = parseInt(el("coloroffset").value);
             }
 
             const HEIGHT = 1000;
@@ -465,6 +466,10 @@
                                 <tr>
                                     <td>Grow color step: </td><td> <input id="grstepn" type="number" value="100" onchange="synchslide(this,2,1000);"/>
                                         2 <input type="range" min="2" max="1000" value="100" oninput="synchnum(this);" id="grstep"> 1000</td>
+                                </tr>
+                                <tr>
+                                    <td>Color offset: </td><td> <input id="coloroffsetn" type="number" value="100" onchange="synchslide(this,0,1000);"/>
+                                        2 <input type="range" min="0" max="1000" value="100" oninput="synchnum(this);" id="coloroffset"> 1000</td>
                                 </tr>
                                 <tr>
                                     <td>Grow speed: </td><td> <input id="grspeedn" type="number" value="100" onchange="synchslide(this,1,3000);"/>
