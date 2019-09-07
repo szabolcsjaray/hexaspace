@@ -151,6 +151,18 @@
                 }
             }
 
+            function initPoints() {
+                points = [];
+                for(let y=0;y<=H+1;y++) {
+                    let row = new Array();
+                    for(let x=0;x<=(W+2)*2;x++) {
+                        row.push(0);
+                    }
+                    points.push(row);
+                }
+                //console.log(points);
+            }
+
             function hex(d) {
                 return hexDigits[Math.round(d/16)]+hexDigits[d%16];
             }
@@ -173,16 +185,12 @@
                 return cols[(gen+offs*OFFSMULT)%(cols.length)];
             }
 
-            function initPoints() {
-                points = [];
-                for(let y=0;y<=H+1;y++) {
-                    let row = new Array();
-                    for(let x=0;x<=(W+2)*2;x++) {
-                        row.push(0);
-                    }
-                    points.push(row);
+            function countColors(colId) {
+                let n = 1;
+                while (el(colId+(n+1))!=null && el(colId+(n+1))!=undefined) {
+                    n++;
                 }
-                //console.log(points);
+                return n;
             }
 
             function colToArray(colStr, colArr) {
@@ -195,13 +203,21 @@
             function setColors() {
                 bgCols[0] = "#" + el("bgcol1").value;
                 bgCols[1] = "#" + el("bgcol2").value;
-                let i = 1;
+
+                let colNum = countColors("grcol1_");
+                if (colNum==1) {
+                    cols = [ "#"+el("grcol1_1").value ];
+                    return;
+                }
+
                 COLARRAY = new Array();
-                while (el("grcol1_"+i)!=null && el("grcol1_"+i)!=undefined) {
+                let i = 1;
+                while (i<=colNum) {
                     COLARRAY.push(new Array());
                     colToArray(el("grcol1_"+i).value, COLARRAY[COLARRAY.length-1]);
                     i++;
                 }
+                initCols();
             }
 
             function saveImage() {
@@ -301,6 +317,7 @@
 
             function startIt() {
                 console.log("startIt d=" + d);
+                STOP_SIGN = false;
 
                 //let bgCols=["#EFDFEF", "#AFFFFF"];
                 setParameters();
@@ -311,7 +328,6 @@
                 walls = [];
                 triangles = [];
                 setColors();
-                initCols();
 
                 let hexaEl = el("hexa");
                 context = hexaEl.getContext("2d");
@@ -399,13 +415,6 @@
                 hideAllFormParameters();
                 setParameterVisibility(el("drawform").value, "table-row");
             }
-            function countColors(colId) {
-                let n = 1;
-                while (el(colId+(n+1))!=null && el(colId+(n+1))!=undefined) {
-                    n++;
-                }
-                return n;
-            }
             function addColor(colId) {
                 let colNum = countColors(colId);
                 var newColEl = document.createElement("input");
@@ -450,7 +459,6 @@
                 STOP_SIGN = false;
                 setRestartParameters();
                 setColors();
-                initCols();
                 drawStep();
             }
         </script>
