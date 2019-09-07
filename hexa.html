@@ -6,26 +6,20 @@
         <link rel="stylesheet" href="hexa.css">
         <script src="jscolor.js"></script>
         <script lang="javascript">
+            var COLARRAY = [[0,100,255], [255,0,0]];
+            var COLSTEP = 300;
+            var OFFSMULT = 10;
+            var MAXNUM = 8;
+            var circleNum = 8;
+            var SPIRAL_STEP = 0.3;
+            var ROOTCOL = "000000";
+            var STOP_SIGN = false;
 
-            function el(id) {
-                return document.getElementById(id);
-            }
+            var cols = [];
+            const hexDigits = "0123456789ABCDEFF";
 
             var d = 4;
             var drawform;
-
-            function setParameters() {
-                    d=parseInt(el("input_d").value);
-                    COLSTEP = parseInt(el("grstep").value);
-                    MAXNUM = parseInt(el("random").value);
-                    drawform = el("drawform").value;
-                    circleNum = parseInt(el("circlenum").value);
-                    circleRad = parseInt(el("circlerad").value);
-                    DRAWSTEPNUM = parseInt(el("grspeed").value);
-                    SPIRAL_STEP = parseFloat(el("spiralstep").value);
-                    OFFSMULT = parseInt(el("coloroffset").value);
-                    ROOTCOL = el('rootcol').value;
-            }
 
             const HEIGHT = 1000;
             const WIDTH = 1000;
@@ -34,6 +28,42 @@
             var W;
             //console.log("dh:"+dh);
             var context;
+
+            var triangles = []; //[[W, Math.round(H/2)]];
+            var walls = [];
+            var points = [];
+
+            var bgCols=["yellow", "lightgreen"];
+            var DRAWSTEPNUM = 10;
+
+            const upC = "orange";
+            const downC = "blue";
+            const upRightC = "green";
+            const upLeftC = "red";
+            const downRightC = "yellow";
+            const downLeftC = "purple";
+
+            function el(id) {
+                return document.getElementById(id);
+            }
+
+            function setRestartParameters() {
+                COLSTEP = parseInt(el("grstep").value);
+                DRAWSTEPNUM = parseInt(el("grspeed").value);
+                OFFSMULT = parseInt(el("coloroffset").value);
+            }
+
+            function setParameters() {
+                d = parseInt(el("input_d").value);
+                MAXNUM = parseInt(el("random").value);
+                drawform = el("drawform").value;
+                circleNum = parseInt(el("circlenum").value);
+                circleRad = parseInt(el("circlerad").value);
+                SPIRAL_STEP = parseFloat(el("spiralstep").value);
+                ROOTCOL = el('rootcol').value;
+                setRestartParameters();
+            }
+
             function drawTriangle(x, y, color, n) {
                 let x0 = Math.round((x-1)*d/2);
                 let y0 = Math.round(y*dh);
@@ -61,10 +91,6 @@
 
                 }
             }
-            var triangles = []; //[[W, Math.round(H/2)]];
-            var walls = [];
-            var points = [];
-
             function addToWalls(ti, notThis) {
                 if (triangles.length>ti) {
                     for (let j=1;j<4;j++) {
@@ -124,16 +150,6 @@
                     triangles.push([x,y,1]);
                 }
             }
-            var COLARRAY = [[0,100,255], [255,0,0]];
-            var COLSTEP = 300;
-            var OFFSMULT = 10;
-            var MAXNUM = 8;
-            var circleNum = 8;
-            var SPIRAL_STEP = 0.3;
-            var ROOTCOL = "000000";
-
-            var cols = [];
-            const hexDigits = "0123456789ABCDEFF";
 
             function hex(d) {
                 return hexDigits[Math.round(d/16)]+hexDigits[d%16];
@@ -168,7 +184,6 @@
                 }
                 //console.log(points);
             }
-            var bgCols=["yellow", "lightgreen"];
 
             function colToArray(colStr, colArr) {
                 colArr.length = 0;
@@ -199,11 +214,10 @@
             function drawNextStep() {
                     window.requestAnimationFrame(drawStep);
             }
-            var DRAWSTEPNUM = 10;
 
             function drawStep() {
                 let step = 0;
-                while (walls.length>0 && step<DRAWSTEPNUM) {
+                while (walls.length>0 && step<DRAWSTEPNUM && !STOP_SIGN) {
                     let i = Math.floor(Math.random() * walls.length);
                     //console.log(i);
                     let p = (walls[i][0]+walls[i][1])%2;
@@ -280,17 +294,10 @@
                     walls.splice(i,1);
                     step++;
                 }
-                if (walls.length>0) {
+                if (walls.length>0 && !STOP_SIGN) {
                     setTimeout(drawNextStep, 10);
                 }
             }
-
-            const upC = "orange";
-            const downC = "blue";
-            const upRightC = "green";
-            const upLeftC = "red";
-            const downRightC = "yellow";
-            const downLeftC = "purple";
 
             function startIt() {
                 console.log("startIt d=" + d);
@@ -413,11 +420,38 @@
                 if (colNum==1) return;
                 el(colId).removeChild(el(colId+colNum));
             }
+            function shiftColor(colId) {
+                let colNum = countColors(colId);
+                if (colNum==1) return;
+                let sameEnding = false;
+                if (el(colId+"1").value==el(colId+colNum).value) {
+                    sameEnding = true;
+                    colNum--;
+                }
+                let lastColor = el(colId+colNum).value;
+                for(let i=colNum;i>1;i--) {
+                    copyValue(colId+(i-1), colId+i);
+                }
+                el(colId+"1").jscolor.fromString(lastColor);
+                if (sameEnding) {
+                    startEqualsEndColor(colId);
+                }
+            }
             function startEqualsEndColor(colId) {
                 let colNum= countColors(colId);
                 if (colNum>2) {
                     copyValue(colId+"1", colId+""+colNum);
                 }
+            }
+            function stopIt() {
+                STOP_SIGN = true;
+            }
+            function restartIt() {
+                STOP_SIGN = false;
+                setRestartParameters();
+                setColors();
+                initCols();
+                drawStep();
             }
         </script>
     </head>
@@ -467,15 +501,16 @@
                                     <td>Root color: </td>
                                     <td>
                                         <input id="rootcol" class="jscolor" value="000000">
-                                        <button title="Same" onclick="copyValue( 'grcol1_1', 'rootcol');">Same</button>
+                                        <button title="Same as start color" onclick="copyValue( 'grcol1_1', 'rootcol');">Same</button>
                                     </td>
                                 </tr>
                                 <tr id="trgrcol1">
                                     <td>Grow colors 1: </td>
                                     <td id="grcol1_">
-                                        <input id="grcol1_1" class="jscolor" value="F00000"><input id="grcol1_2" class="jscolor" value="00F080"><button id="grcol1_plus" title="Add color" onclick="addColor('grcol1_');">&nbsp;+&nbsp;</button>
-                                        <button title="Remove color" onclick="removeColor('grcol1_');">&nbsp;-&nbsp;</button>
-                                        <button title="Same" onclick="startEqualsEndColor('grcol1_');">=</button -->
+                                        <input id="grcol1_1" class="jscolor" value="F00000"><input id="grcol1_2" class="jscolor" value="00F080"><button id="grcol1_plus" title="Add color to the end" onclick="addColor('grcol1_');">&nbsp;+&nbsp;</button>
+                                        <button title="Remove color at the end" onclick="removeColor('grcol1_');">&nbsp;-&nbsp;</button>
+                                        <button title="Shift colors. Preserves same ending." onclick="shiftColor('grcol1_');">&nbsp;>>&nbsp;</button>
+                                        <button title="Ending color is the same as start color" onclick="startEqualsEndColor('grcol1_');">=</button>
                                     </td>
                                 </tr>
                                 <tr>
@@ -508,8 +543,11 @@
                                </tr>
                                 <tr>
                                     <td colspan="2">
-                                        <button title="Redraw" onclick="startIt();">Redraw</button>
+                                        <button title="Draw" onclick="startIt();">Draw</button>
                                         <button title="Save" onclick="saveImage();">Save</button>
+                                        <button title="Stop" onclick="stopIt();">Stop</button>
+                                        <button title="Restart" onclick="restartIt();">Restart</button>
+
                                         <a id="link"></a>
                                     </td>
                                 </tr>
