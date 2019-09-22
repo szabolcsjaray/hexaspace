@@ -14,6 +14,8 @@
             var SPIRAL_STEP = 0.3;
             var ROOTCOL = "000000";
             var STOP_SIGN = false;
+            var COLORROWNUM = 1;
+            var COLORROW = "Const";
 
             var cols = [];
             const hexDigits = "0123456789ABCDEFF";
@@ -43,6 +45,9 @@
             const downRightC = "yellow";
             const downLeftC = "purple";
 
+            var colF;
+            var rooti = 0;
+
             function el(id) {
                 return document.getElementById(id);
             }
@@ -61,6 +66,7 @@
                 circleRad = parseInt(el("circlerad").value);
                 SPIRAL_STEP = parseFloat(el("spiralstep").value);
                 ROOTCOL = el('rootcol').value;
+                COLORROW = el("colorrow").value;
                 setRestartParameters();
             }
 
@@ -147,7 +153,8 @@
                             return;
                         }
                     }
-                    triangles.push([x,y,1]);
+                    triangles.push([x,y,1,rooti]);
+                    rooti++;
                 }
             }
 
@@ -167,8 +174,8 @@
                 return hexDigits[Math.round(d/16)]+hexDigits[d%16];
             }
 
-            function initCols() {
-                cols = [];
+            function initCols(ci) {
+                cols[ci-1] = [];
                 for(let coli = 0;coli<COLARRAY.length-1;coli++) {
                     for(let i=0;i<=COLSTEP;i++) {
                         let c0 = Math.round(COLARRAY[coli][0]*(COLSTEP-i)/COLSTEP + COLARRAY[coli+1][0]*i/COLSTEP);
@@ -176,13 +183,21 @@
                         let c2 = Math.round(COLARRAY[coli][2]*(COLSTEP-i)/COLSTEP + COLARRAY[coli+1][2]*i/COLSTEP);
                         //console.log(c0+","+c1+","+c2);
                         //console.log(hex(c0)+","+hex(c1)+","+hex(c2));
-                        cols.push("#"+hex(c0)+hex(c1)+hex(c2));
+                        cols[ci-1].push("#"+hex(c0)+hex(c1)+hex(c2));
                     }
                 }
             }
 
-            function colF(gen,offs) {
-                return cols[(gen+offs*OFFSMULT)%(cols.length)];
+            function colFConst(origin, gen, offs) {
+                return cols[0][(gen+offs*OFFSMULT)%(cols[0].length)];
+            }
+
+            function colFOrigin(origin, gen, offs) {
+                return cols[origin%COLORROWNUM][(gen+offs*OFFSMULT)%(cols[origin%COLORROWNUM].length)];
+            }
+
+            function colFOffset(origin, gen, offs) {
+                return cols[offs%COLORROWNUM][(gen+offs*OFFSMULT)%(cols[offs%COLORROWNUM].length)];
             }
 
             function countColors(colId) {
@@ -203,21 +218,40 @@
             function setColors() {
                 bgCols[0] = "#" + el("bgcol1").value;
                 bgCols[1] = "#" + el("bgcol2").value;
-
-                let colNum = countColors("grcol1_");
-                if (colNum==1) {
-                    cols = [ "#"+el("grcol1_1").value ];
-                    return;
+                cols = [];
+                for(let ci=1;ci<=COLORROWNUM;ci++) {
+                    cols.push(new Array());
                 }
 
-                COLARRAY = new Array();
-                let i = 1;
-                while (i<=colNum) {
-                    COLARRAY.push(new Array());
-                    colToArray(el("grcol1_"+i).value, COLARRAY[COLARRAY.length-1]);
-                    i++;
+                for(let ci=1;ci<=COLORROWNUM;ci++) {
+
+                    let colNum = countColors("grcol"+ci+"_");
+                    if (colNum==1) {
+                        cols[ci-1] = [ "#"+el("grcol1_1").value ];
+                        continue;
+                    }
+
+                    COLARRAY = new Array();
+                    let i = 1;
+                    while (i<=colNum) {
+                        COLARRAY.push(new Array());
+                        colToArray(el("grcol"+ci+"_"+i).value, COLARRAY[COLARRAY.length-1]);
+                        i++;
+                    }
+                    initCols(ci);
                 }
-                initCols();
+                switch (COLORROW) {
+                    case "Origin" :
+                        colF = colFOrigin;
+                        break;
+                    case "Offset" :
+                        colF = colFOffset;
+                        break;
+                    case "Const" :
+                    default :
+                        colF = colFConst;
+                        break;
+                }
             }
 
             function saveImage() {
@@ -238,15 +272,16 @@
                     //console.log(i);
                     let p = (walls[i][0]+walls[i][1])%2;
                     if (walls[i][0] > 0 && walls[i][0] <= W*2 && walls[i][1] > 0 && walls[i][1] <= H) {
-                        //console.log("tr.index from walls:" +walls[i][3] + "next gen:" + triangles[walls[i][3]][2]+1 +" wall i:" + i);
+                        //console.log("tr.index from walls:" +walls[i][3] + "next gen:" + tri[2]+1 +" wall i:" + i);
                         //console.log(walls[i]);
                         //console.log(triangles);
+                        let tri = triangles[walls[i][3]];
                         switch (walls[i][2]) {
                             case 1:
                                 if (p==1) {
                                     if (notInPoints(walls[i][0]+1, walls[i][1]-2)) {
-                                        triangles.push([walls[i][0],walls[i][1]-1, triangles[walls[i][3]][2]+1]);
-                                        drawTriangle(walls[i][0],walls[i][1]-1, colF(triangles[walls[i][3]][2]+1, 0), 0);
+                                        triangles.push([walls[i][0],walls[i][1]-1, tri[2]+1, tri[3]]);
+                                        drawTriangle(walls[i][0],walls[i][1]-1, colF(tri[3], tri[2]+1, 0), 0);
                                         //drawTriangle(walls[i][0],walls[i][1]-1, upC, 0);
                                         //drawNode(walls[i][0]+1, walls[i][1]-2, "orange");
                                         addPoint(walls[i][0]+1, walls[i][1]-2);
@@ -254,8 +289,8 @@
                                     }
                                 } else {
                                     if (notInPoints(walls[i][0]+1, walls[i][1]+1)) {
-                                        triangles.push([walls[i][0],walls[i][1]+1, triangles[walls[i][3]][2]+1]);
-                                        drawTriangle(walls[i][0],walls[i][1]+1, colF(triangles[walls[i][3]][2]+1, 3), 0);
+                                        triangles.push([walls[i][0],walls[i][1]+1, tri[2]+1, tri[3]]);
+                                        drawTriangle(walls[i][0],walls[i][1]+1, colF(tri[3], tri[2]+1, 3), 0);
                                         //drawTriangle(walls[i][0],walls[i][1]+1, downC, 0);
                                         //drawNode(walls[i][0]+1, walls[i][1]+1, "orange");
                                         addPoint(walls[i][0]+1, walls[i][1]+1);
@@ -266,8 +301,8 @@
                             case 2:
                                 if (p==1) {
                                     if (notInPoints(walls[i][0]+3, walls[i][1])) {
-                                        triangles.push([walls[i][0]+1,walls[i][1], triangles[walls[i][3]][2]+1]);
-                                        drawTriangle(walls[i][0]+1,walls[i][1], colF(triangles[walls[i][3]][2]+1, 2), 0);
+                                        triangles.push([walls[i][0]+1,walls[i][1], tri[2]+1, tri[3]]);
+                                        drawTriangle(walls[i][0]+1,walls[i][1], colF(tri[3], tri[2]+1, 2), 0);
                                         //drawTriangle(walls[i][0]+1,walls[i][1], downRightC, 0);
                                         //drawNode(walls[i][0]+3, walls[i][1], "orange");
                                         addPoint(walls[i][0]+3, walls[i][1]);
@@ -275,8 +310,8 @@
                                     }
                                 } else {
                                     if (notInPoints(walls[i][0]+3, walls[i][1]-1)) {
-                                        triangles.push([walls[i][0]+1,walls[i][1], triangles[walls[i][3]][2]+1]);
-                                        drawTriangle(walls[i][0]+1,walls[i][1], colF(triangles[walls[i][3]][2]+1, 1), 0);
+                                        triangles.push([walls[i][0]+1,walls[i][1], tri[2]+1, tri[3]]);
+                                        drawTriangle(walls[i][0]+1,walls[i][1], colF(tri[3], tri[2]+1, 1), 0);
                                         //drawTriangle(walls[i][0]+1,walls[i][1], upRightC, 0);
                                         //drawNode(walls[i][0]+3, walls[i][1]-1, "yellow");
                                         addPoint(walls[i][0]+3, walls[i][1]-1);
@@ -287,8 +322,8 @@
                             case 3:
                                 if (p==1) {
                                     if (notInPoints(walls[i][0]-1, walls[i][1])) {
-                                        triangles.push([walls[i][0]-1,walls[i][1], triangles[walls[i][3]][2]+1]);
-                                        drawTriangle(walls[i][0]-1,walls[i][1], colF(triangles[walls[i][3]][2]+1, 4), 0);
+                                        triangles.push([walls[i][0]-1,walls[i][1], tri[2]+1, tri[3]]);
+                                        drawTriangle(walls[i][0]-1,walls[i][1], colF(tri[3], tri[2]+1, 4), 0);
                                         //drawTriangle(walls[i][0]-1,walls[i][1], downLeftC, 0);
                                         //drawNode(walls[i][0]-1, walls[i][1], "orange");
                                         addPoint(walls[i][0]-1, walls[i][1]);
@@ -296,8 +331,8 @@
                                     }
                                 } else {
                                     if (notInPoints(walls[i][0]-1, walls[i][1]-1)) {
-                                        triangles.push([walls[i][0]-1,walls[i][1], triangles[walls[i][3]][2]+1]);
-                                        drawTriangle(walls[i][0]-1,walls[i][1], colF(triangles[walls[i][3]][2]+1, 5), 0);
+                                        triangles.push([walls[i][0]-1,walls[i][1], tri[2]+1, tri[3]]);
+                                        drawTriangle(walls[i][0]-1,walls[i][1], colF(tri[3], tri[2]+1, 5), 0);
                                         //drawTriangle(walls[i][0]-1,walls[i][1], upLeftC, 0);
                                         //drawNode(walls[i][0]-1, walls[i][1]-1, "yellow");
                                         addPoint(walls[i][0]-1, walls[i][1]-1);
@@ -461,6 +496,21 @@
                 setColors();
                 drawStep();
             }
+            function addColorRow() {
+                let tbody=el("controllmenu");
+                let buttons = el("colorrowmenu");
+                var newColRowEl = document.createElement("tr");
+                tbody.insertBefore(newColRowEl, buttons);
+                COLORROWNUM++;
+                newColRowEl.innerHTML="<td>Grow colors "+COLORROWNUM+": </td>\n" +
+                                    "<td id=\"grcol"+COLORROWNUM+"_\">\n" +
+                                        "<input id=\"grcol"+COLORROWNUM+"_1\" class=\"jscolor\" value=\"F00000\"><input id=\"grcol"+COLORROWNUM+"_2\" class=\"jscolor\" value=\"00F080\"><button id=\"grcol"+COLORROWNUM+"_plus\" title=\"Add color to the end\" onclick=\"addColor('grcol"+COLORROWNUM+"_');\">&nbsp;+&nbsp;</button>\n" +
+                                        "<button title=\"Remove color at the end\" onclick=\"removeColor('grcol"+COLORROWNUM+"_');\">&nbsp;-&nbsp;</button>\n" +
+                                        "<button title=\"Shift colors. Preserves same ending.\" onclick=\"shiftColor('grcol"+COLORROWNUM+"_');\">&nbsp;>>&nbsp;</button>\n" +
+                                        "<button title=\"Ending color is the same as start color\" onclick=\"startEqualsEndColor('grcol"+COLORROWNUM+"_');\">=</button>\n" +
+                                    "</td>";
+                jscolor.installByClassName("jscolor");
+            }
         </script>
     </head>
     <body  style="background-color: #A0A0A0;" onload="showHideFormParameters();">
@@ -479,7 +529,7 @@
                                             HEXA SPACE
                                     </th>
                             </thead>
-                            <tbody>
+                            <tbody id="controllmenu">
                                 <tr>
                                     <td>
                                         Triangle size:</td><td> <input type="number" id="input_dn" value="5" onchange="synchslide(this,2,100);"/>
@@ -512,6 +562,16 @@
                                         <button title="Same as start color" onclick="copyValue( 'grcol1_1', 'rootcol');">Same</button>
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td>Color rows: </td>
+                                    <td>
+                                        <select name="colorrowname" id="colorrow">
+                                            <option value="Const">Constant</option>
+                                            <option value="Origin">Origin</option>
+                                            <option value="Offset">Offset (direction)</option>
+                                        </select>
+                                    </td>
+                                </tr>
                                 <tr id="trgrcol1">
                                     <td>Grow colors 1: </td>
                                     <td id="grcol1_">
@@ -519,6 +579,13 @@
                                         <button title="Remove color at the end" onclick="removeColor('grcol1_');">&nbsp;-&nbsp;</button>
                                         <button title="Shift colors. Preserves same ending." onclick="shiftColor('grcol1_');">&nbsp;>>&nbsp;</button>
                                         <button title="Ending color is the same as start color" onclick="startEqualsEndColor('grcol1_');">=</button>
+                                    </td>
+                                </tr>
+                                <tr id="colorrowmenu">
+                                    <td colspan="2">
+                                        <button title="Add new color row." onclick="addColorRow();">&nbsp;+ colors&nbsp;</button>
+                                        <!--button title="Remove color row" onclick="removeLastColorRow();">- last colors</button -->
+
                                     </td>
                                 </tr>
                                 <tr>
