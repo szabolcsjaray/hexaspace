@@ -16,6 +16,7 @@
             var STOP_SIGN = false;
             var COLORROWNUM = 1;
             var COLORROW = "Const";
+            var MUTATION = 0;
 
             var cols = [];
             const hexDigits = "0123456789ABCDEFF";
@@ -56,6 +57,8 @@
                 COLSTEP = parseInt(el("grstep").value);
                 DRAWSTEPNUM = parseInt(el("grspeed").value);
                 OFFSMULT = parseInt(el("coloroffset").value);
+                COLORROW = el("colorrow").value;
+                MUTATION = el("mutation").value;
             }
 
             function setParameters() {
@@ -66,7 +69,6 @@
                 circleRad = parseInt(el("circlerad").value);
                 SPIRAL_STEP = parseFloat(el("spiralstep").value);
                 ROOTCOL = el('rootcol').value;
-                COLORROW = el("colorrow").value;
                 setRestartParameters();
             }
 
@@ -276,6 +278,9 @@
                         //console.log(walls[i]);
                         //console.log(triangles);
                         let tri = triangles[walls[i][3]];
+                        if (Math.random()*10000<MUTATION) {
+                            tri[3] = tri[3]+1;
+                        }
                         switch (walls[i][2]) {
                             case 1:
                                 if (p==1) {
@@ -450,6 +455,15 @@
                 hideAllFormParameters();
                 setParameterVisibility(el("drawform").value, "table-row");
             }
+            function hideAllColorParameters() {
+                let params = ["Origin","Offset","Constant"];
+                params.forEach( function (item, index) { setParameterVisibility(item, "none"); });
+            }
+            function showHideColorParameters() {
+                hideAllColorParameters();
+                setParameterVisibility(el("colorrow").value, "table-row");
+            }
+
             function addColor(colId) {
                 let colNum = countColors(colId);
                 var newColEl = document.createElement("input");
@@ -565,7 +579,7 @@
                                 <tr>
                                     <td>Color rows: </td>
                                     <td>
-                                        <select name="colorrowname" id="colorrow">
+                                        <select name="colorrowname" id="colorrow" onchange="showHideColorParameters();">
                                             <option value="Const">Constant</option>
                                             <option value="Origin">Origin</option>
                                             <option value="Offset">Offset (direction)</option>
@@ -597,11 +611,15 @@
                                         0 <input type="range" min="0" max="1000" value="100" oninput="synchnum(this);" id="coloroffset"> 1000</td>
                                 </tr>
                                 <tr>
-                                    <td>Grow speed: </td><td> <input id="grspeedn" type="number" value="200" onchange="synchslide(this,1,3000);"/>
-                                        1 <input type="range" min="1" max="3000" value="200" oninput="synchnum(this);" id="grspeed"> 3000</td>
+                                    <td>Grow speed: </td><td> <input id="grspeedn" type="number" value="400" onchange="synchslide(this,1,3000);"/>
+                                        1 <input type="range" min="1" max="3000" value="400" oninput="synchnum(this);" id="grspeed"> 3000</td>
+                                </tr>
+                                <tr class="Origin">
+                                    <td>Mutation probability: </td><td> <input id="mutationn" type="number" value="0" onchange="synchslide(this,0,10000);"/>
+                                        1 <input type="range" min="0" max="10000" value="0" oninput="synchnum(this);" id="mutation"> 10000</td>
                                 </tr>
                                 <tr class="randomroot">
-                                    <td>Random num: </td><td> <input id="randomn" type="number" value="10" onchange="synchslide(this,1,1000);"/>
+                                    <td>Root num: </td><td> <input id="randomn" type="number" value="10" onchange="synchslide(this,1,1000);"/>
                                         1 <input type="range" min="1" max="1000" value="10" oninput="synchnum(this);" id="random"> 1000</td>
                                 </tr>
                                 <tr class="circle">
