@@ -19,9 +19,13 @@
             var MUTATION = 0;
 
             var WORMLENGTH = 0;
+            var WORMNUM = 0;
             var lastWormEnd = 0;
             var wormStart = 0;
             var wormWallStart = 0;
+            var origWormWallStart = 0;
+            var wormState;
+            var wormnum = 0;
 
             var cols = [];
             const hexDigits = "0123456789ABCDEFF";
@@ -63,9 +67,10 @@
                 COLSTEP = parseInt(el("grstep").value);
                 DRAWSTEPNUM = parseInt(el("grspeed").value);
                 OFFSMULT = parseInt(el("coloroffset").value);
-                COLORROW = el("colorrow").value;
-                MUTATION = el("mutation").value;
-                WORMLENGTH = el("wormlength").value;
+                COLORROW =  el("colorrow").value;
+                MUTATION =  parseInt(el("mutation").value);
+                WORMLENGTH =  parseInt(el("wormlengthn").value);
+                WORMNUM = parseInt(el("wormnum").value);
             }
 
             function setParameters() {
@@ -275,7 +280,10 @@
             }
 
             function drawStep() {
+                //let id = Math.floor(Math.random()*1000);
+                //console.log("STEP START, stepid:" + id +", t:"+trianglenum);
                 let step = 0;
+
                 while (walls.length>0 && step<DRAWSTEPNUM && !STOP_SIGN) {
                     let i = Math.floor(Math.random() * (walls.length-wormWallStart))+wormWallStart;
                     //console.log(i);
@@ -362,26 +370,40 @@
                     }
                     walls.splice(i,1);
 
-                    if (WORMLENGTH>0) {
-                        if (wormWallStart==0) {
+                    if (WORMLENGTH>0 && wormState>=0) {
+                        if (wormState==0) {
                             if(trianglenum-lastWormEnd>WORMLENGTH) {
                                 wormWallStart = walls.length>0 ? walls.length-1 : 0;
+                                origWormWallStart = wormWallStart;
                                 wormStart = trianglenum;
-                                console.log("wormStart:" + wormStart+ "(lastWormEnd:" + lastWormEnd +", WORMLENGTH"+ WORMLENGTH +")");
+                                wormState = 1; // worm lengthen state
+                                wormnum++;
+                                if (wormnum>=WORMNUM) {
+                                    wormState = -1;
+                                    wormWallStart = 0;
+                                }
+                                //console.log("WORM LENGHTEN, wormStart:" + wormStart+ "(lastWormEnd:" + lastWormEnd +", WORMLENGTH:"+ WORMLENGTH +")");
                             }
                         } else {
                             if (wormStart + WORMLENGTH > trianglenum) {
                                 // lengthen worm
                                 wormWallStart = walls.length>=2 ? walls.length-2 : walls.length > 0 ? walls.length-1 : 0;
-                                console.log("t:"+trianglenum);
+
                             } else {
-                                // thicken worm
-                                if (wormStart + (2* WORMLENGTH) < trianglenum) {
+                                if (wormState==1) {
+                                    wormState = 2;
+                                    wormWallStart = walls.length>origWormWallStart ? origWormWallStart : wormWallStart;
+                                    //console.log("WORM WIDEN, state2, wormStart:" + wormStart + ", lastWormEnd:" + lastWormEnd);
+                                }
+
+                                if (trianglenum > (wormStart + WORMLENGTH + WORMLENGTH)) {
                                     // worm growing ends
-                                    console.log("lastWormEnds:" + trianglenum + "(wormStart:" + wormStart +", WORMLENGTH"+ WORMLENGTH +")");
+                                    //console.log("WORM END, lastWormEnds:" + trianglenum + "(wormStart:" + wormStart +", WORMLENGTH:"+ WORMLENGTH +" + (wormStart + (2 * WORMLENGTH))="+(wormStart + (2 * WORMLENGTH))+")");
                                     wormWallStart = 0;
                                     lastWormEnd = trianglenum;
+                                    wormState = 0;
                                 } else if (walls.length<=wormWallStart) {
+                                    // thicken worm
                                     wormWallStart =  walls.length>0 ? walls.length-1 : 0;
                                 }
                             }
@@ -389,6 +411,7 @@
                     }
                     step++;
                 }
+                //console.log("STEP END, stepid:" + id +", t:"+trianglenum);
                 if (walls.length>0 && !STOP_SIGN) {
                     setTimeout(drawNextStep, 10);
                 }
@@ -462,6 +485,8 @@
                 lastWormEnd = 0;
                 wormStart = 0;
                 trianglenum = 0;
+                wormState = 0;
+                wormnum = 0;
 
                 drawStep();
             }
@@ -665,6 +690,10 @@
                                 <tr>
                                     <td>Worm length: </td><td> <input id="wormlengthn" type="number" value="0" onchange="synchslide(this,0,10000);"/>
                                         0 <input type="range" min="0" max="10000" value="0" oninput="synchnum(this);" id="wormlength"> 10000</td>
+                                </tr>
+                                <tr>
+                                    <td>Worm max number: </td><td> <input id="wormnumn" type="number" value="0" onchange="synchslide(this,0,10000);"/>
+                                        0 <input type="range" min="0" max="10000" value="0" oninput="synchnum(this);" id="wormnum"> 10000</td>
                                 </tr>
                                 <tr class="randomroot">
                                     <td>Root num: </td><td> <input id="randomn" type="number" value="10" onchange="synchslide(this,1,1000);"/>
