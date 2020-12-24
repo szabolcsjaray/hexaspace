@@ -13,7 +13,7 @@
             var circleNum = 8;
             var SPIRAL_STEP = 0.3;
             var ROOTCOL = "000000";
-            var STOP_SIGN = false;
+            var STOP_SIGN = true;
             var COLORROWNUM = 1;
             var COLORROW = "Const";
             var MUTATION = 0;
@@ -58,6 +58,7 @@
 
             var colF;
             var rooti = 0;
+            var paused = false;
 
             function el(id) {
                 return document.getElementById(id);
@@ -283,10 +284,15 @@
                 //let id = Math.floor(Math.random()*1000);
                 //console.log("STEP START, stepid:" + id +", t:"+trianglenum);
                 let step = 0;
+                if (paused)
+                    return;
 
                 while (walls.length>0 && step<DRAWSTEPNUM && !STOP_SIGN) {
                     let i = Math.floor(Math.random() * (walls.length-wormWallStart))+wormWallStart;
                     //console.log(i);
+                    if (STOP_SIGN) {
+                        return;
+                    }
                     let p = (walls[i][0]+walls[i][1])%2;
                     if (walls[i][0] > 0 && walls[i][0] <= W*2 && walls[i][1] > 0 && walls[i][1] <= H) {
                         //console.log("tr.index from walls:" +walls[i][3] + "next gen:" + tri[2]+1 +" wall i:" + i);
@@ -418,8 +424,13 @@
             }
 
             function startIt() {
+                if (!STOP_SIGN) {
+                    STOP_SIGN=true;
+                    setTimeout(startIt, 20);
+                    return;
+                }
+                paused = false;
                 console.log("startIt d=" + d);
-                STOP_SIGN = false;
 
                 //let bgCols=["#EFDFEF", "#AFFFFF"];
                 setParameters();
@@ -484,10 +495,12 @@
                 }
                 lastWormEnd = 0;
                 wormStart = 0;
+                wormWallStart = 0;
                 trianglenum = 0;
                 wormState = 0;
                 wormnum = 0;
 
+                STOP_SIGN = false;
                 drawStep();
             }
 
@@ -567,10 +580,10 @@
                 }
             }
             function stopIt() {
-                STOP_SIGN = true;
+                paused = true;
             }
             function restartIt() {
-                STOP_SIGN = false;
+                paused = false;
                 setRestartParameters();
                 setColors();
                 drawStep();
@@ -608,7 +621,7 @@
                         <table>
                             <thead>
                                     <th>
-                                            HEXA SPACE
+                                            HEXA SPACE v1.01, created by Szabolcs Járay, 2020
                                     </th>
                             </thead>
                             <tbody id="controllmenu">
@@ -676,7 +689,7 @@
                                         2 <input type="range" min="2" max="1000" value="100" oninput="synchnum(this);" id="grstep"> 1000</td>
                                 </tr>
                                 <tr>
-                                    <td>Color offset: </td><td> <input id="coloroffsetn" type="number" value="100" onchange="synchslide(this,0,1000);"/>
+                                    <td>Color offset: </td><td> <input id="coloroffsetn" type="number" value="0" onchange="synchslide(this,0,1000);"/>
                                         0 <input type="range" min="0" max="1000" value="100" oninput="synchnum(this);" id="coloroffset"> 1000</td>
                                 </tr>
                                 <tr>
@@ -714,9 +727,9 @@
                                 <tr>
                                     <td colspan="2">
                                         <button title="Draw" onclick="startIt();">Draw</button>
-                                        <button title="Save" onclick="saveImage();">Save</button>
-                                        <button title="Stop" onclick="stopIt();">Stop</button>
-                                        <button title="Restart" onclick="restartIt();">Restart</button>
+                                        <button title="Save picture" onclick="saveImage();">Save Picture</button>
+                                        <button title="Pause" onclick="stopIt();">Pause</button>
+                                        <button title="Continue" onclick="restartIt();">Continue</button>
 
                                         <a id="link"></a>
                                     </td>
